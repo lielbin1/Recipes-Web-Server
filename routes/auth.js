@@ -1,8 +1,20 @@
 var express = require("express");
+const app = express();
+const morgan = require("morgan"); // logging library
+const port = process.env.PORT || "3000";
+app.use(express.json()); // parse application/json
 var router = express.Router();
 const MySql = require("../routes/utils/MySql");
 const DButils = require("../routes/utils/DButils");
 const bcrypt = require("bcrypt");
+
+// print request logs
+app.use(morgan(":method :url :status  :response-time ms"));
+
+app.get("/", (req, res) => {
+  res.send("GET Hello World!");
+});
+
 
 router.post("/Register", async (req, res, next) => {
   try {
