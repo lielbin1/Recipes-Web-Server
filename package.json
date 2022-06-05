@@ -21,7 +21,7 @@
     "express-validator": "^6.4.1",
     "morgan": "^1.10.0",
     "mssql": "^6.2.0",
-    "nodemon": "^2.0.4",
+    "nodemon": "^2.0.16",
     "pg": "^8.2.1"
   },
   "devDependencies": {
