@@ -12,7 +12,7 @@ const recipe_utils = require("./utils/recipes_utils");
 
 router.get("/", (req, res) => res.send("im in user"));
 /**
- * Authenticate all incoming requests by middleware
+ * Authenticate all incoming requests by middleware - cheking if the user is loged in 
  */
 router.use(async function (req, res, next) {
   if (req.session && req.session.user_id) {

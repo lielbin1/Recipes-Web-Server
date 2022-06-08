@@ -69,9 +69,8 @@ router.post("/Login", async (req, res, next) => {
       throw { status: 401, message: "Username or Password incorrect" };
     }
 
-    // Set cookie
+    // Set cookie to be the user_id from the DB (auto increment int number as user_id is set)
     req.session.user_id = user.user_id;
-
 
     // return cookie
     res.status(200).send({ message: "login succeeded", success: true });
