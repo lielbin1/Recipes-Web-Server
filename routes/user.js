@@ -89,27 +89,43 @@ router.post('/favorites', async (req,res,next) => {
 /**
  * This path returns the favorites recipes that were saved by the logged-in user
  */
-router.get('/favorites', async (req,res,next) => {
+ router.get('/favorites', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
     let favorite_recipes = {};
-    const local_recipes_id = await user_utils.getFavoriteLocalRecipes(user_id);
-    const external_recipes_id = await user_utils.getFavoriteExternalRecipes(user_id);
-
-    let local_recipes_id_array = [];
-    let external_recipes_id_array = [];
-    local_recipes_id.map((element) => local_recipes_id_array.push(element.local_recipe_id)); //extracting the local recipe ids into array
-    external_recipes_id.map((element) => external_recipes_id_array.push(element.external_recipes_id)); //extracting the external recipe ids into array
-    // array of JSON object represents recipe details
-    const local_results = await recipe_utils.getLocalRecipesPreview(local_recipes_id_array);
-    // array of JSON object represents recipe details
-    const external_results = await recipe_utils.getExternalRecipesPreview(external_recipes_id_array);
-    results = [local_results,external_results]
+    const recipes_id = await user_utils.getFavoriteRecipes(user_id);
+    let recipes_id_array = [];
+    recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
+    const results = await recipe_utils.getRecipesPreview(recipes_id_array);
     res.status(200).send(results);
   } catch(error){
     next(error); 
   }
 });
+
+
+
+// router.get('/favorites', async (req,res,next) => {
+//   try{
+//     const user_id = req.session.user_id;
+//     let favorite_recipes = {};
+//     const local_recipes_id = await user_utils.getFavoriteLocalRecipes(user_id);
+//     const external_recipes_id = await user_utils.getFavoriteExternalRecipes(user_id);
+
+//     let local_recipes_id_array = [];
+//     let external_recipes_id_array = [];
+//     local_recipes_id.map((element) => local_recipes_id_array.push(element.local_recipe_id)); //extracting the local recipe ids into array
+//     external_recipes_id.map((element) => external_recipes_id_array.push(element.external_recipes_id)); //extracting the external recipe ids into array
+//     // array of JSON object represents recipe details
+//     const local_results = await recipe_utils.getLocalRecipesPreview(local_recipes_id_array);
+//     // array of JSON object represents recipe details
+//     const external_results = await recipe_utils.getExternalRecipesPreview(external_recipes_id_array);
+//     results = [local_results,external_results]
+//     res.status(200).send(results);
+//   } catch(error){
+//     next(error); 
+//   }
+// });
 // -------------------------------API-------------------------------
 
 

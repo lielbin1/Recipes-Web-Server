@@ -119,7 +119,7 @@ exports.getRandomRecipes = getRandomRecipes;
 exports.getLocalRecipesPreview = getLocalRecipesPreview;
 exports.getExternalRecipesPreview = getExternalRecipesPreview;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
-
+exports.getRecipesPreview = getRecipesPreview;
 
 
 
