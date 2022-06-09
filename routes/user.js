@@ -10,6 +10,7 @@ const user_utils = require("./utils/user_utils");
 const recipe_utils = require("./utils/recipes_utils");
 
 
+
 router.get("/", (req, res) => res.send("im in user"));
 /**
  * Authenticate all incoming requests by middleware - cheking if the user is loged in 
@@ -34,39 +35,38 @@ router.post("/CreateRecipe", async (req, res, next) => {
     // valid parameters
     // username exists
     let recipe_details = {
-      image: req.body.image,
-      title: req.body.title,
-      readyInMinutes: req.body.readyInMinutes ,
-      aggregateLikes: req.body.aggregateLikes,
-      glutenFree: req.body.glutenFree,
+
+      image_url: req.body.image_url,
+      recipename: req.body.recipename,
+      timetoprepare: req.body.timetoprepare ,
+      numoflikes: req.body.numoflikes,
+      glutenfree: req.body.glutenfree,
+      is_watched_recipe: req.body.is_watched_recipe,
+      favorite_recipe: req.body.favorite_recipe,
+      ingredients_and_quantity_list: req.body.ingredients_and_quantity_list,
       instructions: req.body.instructions,
-      servings: req.body.servings,
+      numberofserving: req.body.numberofserving,
       vegan: req.body.vegan,
-      vegetarian: req.body.vegetarian,
-      // ingredients: req.body.ingredients -> "ingredients": [{"name": ,"amount":},{"name": ,"amount":}...]
-      ingredients: req.body.ingredients
+      vegetarian: req.body.vegetarian
     }
-    let recipes_titles = [];
-    recipes_titles = await DButils.execQuery("SELECT title from recipes");
-    if (recipes_titles.find((x) => x.title === recipe_details.title))
-      throw { status: 409, message: "recipe title taken" };
+
+    let recipes = [];
+    recipes = await DButils.execQuery("SELECT recipe_id from recipes");
+
+    if (recipes.find((x) => x.recipe_id === recipe_details.recipe_id))
+      throw { status: 409, message: "recipe id taken" };
 
     // add the new recipe
  
     await DButils.execQuery(
-      `INSERT INTO recipes(image,title,readyInMinutes,aggregateLikes,glutenFree,instructions,servings,vegan,vegetarian) VALUES 
-      ( '${recipe_details.image}', '${recipe_details.title}','${recipe_details.readyInMinutes}', '${recipe_details.aggregateLikes}', '${recipe_details.glutenFree}',
-        '${recipe_details.instructions}', '${recipe_details.servings}', '${recipe_details.vegan}', '${recipe_details.vegetarian}')`
+      `INSERT INTO recipes(image_url,recipename,timetoprepare,numoflikes,glutenfree,is_watched_recipe,favorite_recipe,ingredients_and_quantity_list,instructions,numberofserving,vegan,vegetarian) VALUES 
+      ( '${recipe_details.image_url}', '${recipe_details.recipename}',
+      '${recipe_details.timetoprepare}', '${recipe_details.numoflikes}', '${recipe_details.glutenfree}',
+       '${recipe_details.is_watched_recipe}', '${recipe_details.favorite_recipe}', '${recipe_details.ingredients_and_quantity_list}',
+        '${recipe_details.instructions}', '${recipe_details.numberofserving}', '${recipe_details.vegan}', '${recipe_details.vegetarian}')`
     );
-    let recipes_id = [];
-    recipes_id = await DButils.execQuery(`SELECT MAX(recipe_id) as recipe_id from recipes`);
 
-    await recipe_details.ingredients.map((element) => DButils.execQuery(
-      `INSERT INTO recipe_ingredients VALUES ('${recipes_id[0].recipe_id}', '${element.name}','${element.amount}')`
-    ));
-    
     res.status(201).send({ message: "recipe created", success: true });
-
   } catch (error) {
     next(error);
   }
@@ -78,17 +78,13 @@ router.post("/CreateRecipe", async (req, res, next) => {
  */
 router.post('/favorites', async (req,res,next) => {
   try{
-    // const user_id = req.session.user_id; 
-    const user_id = req.body.user_id;
+    const user_id = req.session.user_id; 
+    // const user_id = req.body.user_id;
     const recipe_id = req.body.recipe_id;
-    let recipes_ids = [];
-    recipes_ids = await DButils.execQuery(`SELECT recipe_id from favoriterecipes where user_id='${user_id}'`);
-    if (recipes_ids.find((x) => x.recipe_id === recipe_id))
-      throw { status: 500, message: "Already in favorites" };
     await user_utils.markAsFavorite(user_id,recipe_id);
     res.status(200).send("The Recipe successfully saved as favorite");
     } catch(error){
-      next(error);
+    next(error);
   }
 })
 
@@ -108,6 +104,36 @@ router.post('/favorites', async (req,res,next) => {
     next(error); 
   }
 });
+
+
+
+
+/**
+ * This path returns the recipes that the user search by cusine
+ */
+ router.get('/search', async (req,res,next) => {
+  try {
+    let m_recipes_cusine = await recipes_utils.get_m_recipes_cusine(req.params.number, req.params.cusine, req.params.cusine, req.params.diet, req.params.intolerance);
+    res.send(m_recipes_cusine);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * This path returns the recipes that the user search by diet
+ */
+ router.get('/search/diet', async (req,res,next) => {
+
+});
+
+/**
+ * This path returns the recipes that the user search by intolerance
+ */
+ router.get('/search/intolerance', async (req,res,next) => {
+
+});
+
 
 
 
