@@ -19,7 +19,6 @@ async function getRecipeInformation(recipe_id) {
 }
 
 
-
 async function getRecipeDetails(recipe_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
     let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
@@ -29,7 +28,7 @@ async function getRecipeDetails(recipe_id) {
         title: title,
         readyInMinutes: readyInMinutes,
         image: image,
-        popularity: aggregateLikes,
+        aggregateLikes: aggregateLikes,
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,       
@@ -47,17 +46,17 @@ async function getRandomRecipes() {
 }
 //TODO: need to delete this, i add a function from lab8 getRecipesPreview
 // preview of local recipes from the DB, return array of JSON objects
-async function getLocalRecipesPreview(local_recipes_id_array){
-    let local_recipes_array = [];
-    local_recipes_id_array.map((element) => local_recipes_array.push(getLocalRecipeDetails(element))); //extracting the local recipe ids into array
-    return local_recipes_array;
-}
-//priview of external recipes from the API, rturn array of JSON objects
-async function getExternalRecipesPreview(external_recipes_id_array){
-    let external_recipes_array = [];
-    external_recipes_id_array.map((element) => external_recipes_array.push(getRecipeDetails(element))); //extracting the external recipes as JSON object into array
-    return external_recipes_array;
-}
+// async function getLocalRecipesPreview(local_recipes_id_array){
+//     let local_recipes_array = [];
+//     local_recipes_id_array.map((element) => local_recipes_array.push(getLocalRecipeDetails(element))); //extracting the local recipe ids into array
+//     return local_recipes_array;
+// }
+// //priview of external recipes from the API, rturn array of JSON objects
+// async function getExternalRecipesPreview(external_recipes_id_array){
+//     let external_recipes_array = [];
+//     external_recipes_id_array.map((element) => external_recipes_array.push(getRecipeDetails(element))); //extracting the external recipes as JSON object into array
+//     return external_recipes_array;
+// }
 
 async function getRecipesPreview(recipes_ids_list){
     let promises =[];
@@ -67,6 +66,7 @@ async function getRecipesPreview(recipes_ids_list){
     let info_res = await Promise.all(promises);
     return extractPreviewRecipeDetails(info_res);
 }
+
 function extractPreviewRecipeDetails(recipes_info){
     //check the data type so it can work with diffrent types of data
     return recipes_info.map((recipe_info)=> {
@@ -80,7 +80,7 @@ function extractPreviewRecipeDetails(recipes_info){
             title: title,
             readyInMinutes: readyInMinutes,
             image: image,
-            popularity: aggregateLikes,
+            aggregateLikes: aggregateLikes,
             vegan: vegan,
             vegetarian: vegetarian,
             glutenFree: glutenFree,   
@@ -90,34 +90,33 @@ function extractPreviewRecipeDetails(recipes_info){
 
 async function getRandomThreeRecipes(){
     let random_pool = await getRandomRecipes();
-    let filterd_random_pool = random_pool.data.recipes.filter((random)=>(random.instructions != "") && random.image && random.title && random.readyInMinutes)
+    let filterd_random_pool = random_pool.data.recipes.filter((random)=>(random.instructions != "") && random.image && random.title && random.readyInMinutes && random.aggregateLikes && random.vegan 
+    && random.vegetarian && random.glutenFree)
     if(filterd_random_pool.length < 3){
         return getRandomThreeRecipes();
     }
     return extractPreviewRecipeDetails([filterd_random_pool[0], filterd_random_pool[1], filterd_random_pool[2]]);
 }
 //select the recipe from the DB and return recipe details as JSON object
-async function getLocalRecipeDetails(recipe_id){
-    const recipe_details = await DButils.execQuery(`select * from recipes where recipe_id='${recipe_id}'`);
-    return {
-        id: recipe_details[0].recipe_id,
-        title: recipe_details[0].recipe_name,
-        readyInMinutes: recipe_details[0].timetoprepare,
-        image: recipe_details[0].image_url,
-        popularity: recipe_details[0].numoflikes,
-        vegan: recipe_details[0].vegan,
-        vegetarian: recipe_details[0].vegetarian,
-        glutenFree: recipe_details[0].glutenfree,       
-    }
-}
+// async function getLocalRecipeDetails(recipe_id){
+//     const recipe_details = await DButils.execQuery(`select * from recipes where recipe_id='${recipe_id}'`);
+//     return {
+//         id: recipe_details[0].recipe_id,
+//         title: recipe_details[0].title,
+//         image: recipe_details[0].image,
+//         readyInMinutes: recipe_details[0].timetoprepare,
+//         popularity: recipe_details[0].numoflikes,
+//         vegan: recipe_details[0].vegan,
+//         vegetarian: recipe_details[0].vegetarian,
+//         glutenFree: recipe_details[0].glutenfree,       
+//     }
+// }
 
 
 
 
 exports.getRecipeDetails = getRecipeDetails;
 exports.getRandomRecipes = getRandomRecipes;
-exports.getLocalRecipesPreview = getLocalRecipesPreview;
-exports.getExternalRecipesPreview = getExternalRecipesPreview;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getRecipesPreview = getRecipesPreview;
 
