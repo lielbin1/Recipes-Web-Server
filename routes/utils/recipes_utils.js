@@ -35,6 +35,23 @@ async function getRecipeDetails(recipe_id) {
     }
 }
 
+async function getRecipeDetailsForSearch(recipe_id) {
+    let recipe_info = await getRecipeInformation(recipe_id);
+    let { id, title, readyInMinutes, image, aggregateLikes,instructions, vegan, vegetarian, glutenFree} = recipe_info.data;
+
+    return {
+        id: id,
+        title: title,
+        readyInMinutes: readyInMinutes,
+        image: image,
+        aggregateLikes: aggregateLikes,
+        instructions: instructions,
+        vegan: vegan,
+        vegetarian: vegetarian,
+        glutenFree: glutenFree,       
+    }
+}
+
 async function getRandomRecipes() {
     const response = await axios.get(`${api_domain}/random`,{
         params: {
@@ -48,25 +65,16 @@ async function getRandomRecipes() {
 // number: if not choosen send default 5 
 // query: the recipe name
 async function get_m_recipes_cusine(query, number, cusine, diet, intolerance) { 
-    if(cusine === null && diet === null && intolerance === null){
-        const response = await axios.get(`${api_domain}/complexSearch`,{
-            params: {
-                number: number,
-                query: query,
-                apiKey: process.env.spooncular_apiKey
-            }
-        });
-        return response;
-    }
 
-
-    const response = await axios.get(`${api_domain}/complexSearch?cusine=${cusine}&number=${number}`,{
+    const response = await axios.get(`${api_domain}/complexSearch/?query=${query}&number=${number}`,{
         params: {
-            number:10,
+            number: 5,
             apiKey: process.env.spooncular_apiKey
         }
     });
-    return response;
+    return extractPreviewRecipeDetailsFromSearch(response.data.results);
+    
+
 }
 //TODO: need to delete this, i add a function from lab8 getRecipesPreview
 // preview of local recipes from the DB, return array of JSON objects
@@ -112,6 +120,36 @@ function extractPreviewRecipeDetails(recipes_info){
     })
 }
 
+async function extractPreviewRecipeDetailsFromSearch(recipes_info){
+    //check the data type so it can work with diffrent types of data
+    let promises =[];
+    recipes_info.map((recipe_info)=>{
+        promises.push(getRecipeDetailsForSearch(recipe_info.id));
+    });
+    let info_res = await Promise.all(promises);
+
+    return info_res;
+    // return recipes_info.map((recipe_info)=> {
+    //     let recipe_details = await getRecipeDetailsForSearch(recipe_info.id);
+    //     if(recipe_info.data){
+    //         recipe_details = recipe_info.data;
+    //     }
+       
+    //     const{ id, title, readyInMinutes, image, aggregateLikes, instructions, vegan, vegetarian, glutenFree } = recipe_details;
+    //     return{
+    //         id: id,
+    //         title: title,
+    //         readyInMinutes: readyInMinutes,
+    //         image: image,
+    //         aggregateLikes: aggregateLikes,
+    //         instructions: instructions,
+    //         vegan: vegan,
+    //         vegetarian: vegetarian,
+    //         glutenFree: glutenFree,   
+    //     }
+    // })
+}
+
 async function getRandomThreeRecipes(){
     let random_pool = await getRandomRecipes();
     let filterd_random_pool = random_pool.data.recipes.filter((random)=>(random.instructions != "") && random.image && random.title && random.readyInMinutes && random.aggregateLikes && random.vegan 
@@ -135,7 +173,6 @@ async function getRandomThreeRecipes(){
 //         glutenFree: recipe_details[0].glutenfree,       
 //     }
 // }
-
 
 
 

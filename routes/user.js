@@ -28,6 +28,16 @@ router.use(async function (req, res, next) {
   }
 });
 
+router.get('/CreateRecipe', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    const recipes_info = await user_utils.getCreatedRecipes(user_id);
+  
+    res.status(200).send(recipes_info);
+  } catch(error){
+    next(error); 
+  }
+});
 
 router.post("/CreateRecipe", async (req, res, next) => {
   try {
@@ -35,37 +45,37 @@ router.post("/CreateRecipe", async (req, res, next) => {
     // valid parameters
     // username exists
     let recipe_details = {
-
-      image_url: req.body.image_url,
-      recipename: req.body.recipename,
-      timetoprepare: req.body.timetoprepare ,
-      numoflikes: req.body.numoflikes,
-      glutenfree: req.body.glutenfree,
-      is_watched_recipe: req.body.is_watched_recipe,
-      favorite_recipe: req.body.favorite_recipe,
-      ingredients_and_quantity_list: req.body.ingredients_and_quantity_list,
+      user_id: req.session.user_id,
+      image: req.body.image,
+      title: req.body.title,
+      readyInMinutes: req.body.readyInMinutes ,
+      aggregateLikes: req.body.aggregateLikes,
+      glutenFree: req.body.glutenFree,
       instructions: req.body.instructions,
-      numberofserving: req.body.numberofserving,
+      servings: req.body.servings,
       vegan: req.body.vegan,
-      vegetarian: req.body.vegetarian
+      vegetarian: req.body.vegetarian,
+      // ingredients: req.body.ingredients -> "ingredients": [{"name": ,"amount":},{"name": ,"amount":}...]
+      ingredients: req.body.ingredients
     }
 
-    let recipes = [];
-    recipes = await DButils.execQuery("SELECT recipe_id from recipes");
-
-    if (recipes.find((x) => x.recipe_id === recipe_details.recipe_id))
-      throw { status: 409, message: "recipe id taken" };
+    let recipes_titles = [];
+    recipes_titles = await DButils.execQuery("SELECT title from recipes");
+    if (recipes_titles.find((x) => x.title === recipe_details.title))
+      throw { status: 409, message: "recipe title taken" };
 
     // add the new recipe
- 
     await DButils.execQuery(
-      `INSERT INTO recipes(image_url,recipename,timetoprepare,numoflikes,glutenfree,is_watched_recipe,favorite_recipe,ingredients_and_quantity_list,instructions,numberofserving,vegan,vegetarian) VALUES 
-      ( '${recipe_details.image_url}', '${recipe_details.recipename}',
-      '${recipe_details.timetoprepare}', '${recipe_details.numoflikes}', '${recipe_details.glutenfree}',
-       '${recipe_details.is_watched_recipe}', '${recipe_details.favorite_recipe}', '${recipe_details.ingredients_and_quantity_list}',
-        '${recipe_details.instructions}', '${recipe_details.numberofserving}', '${recipe_details.vegan}', '${recipe_details.vegetarian}')`
+      `INSERT INTO recipes(user_id,title,image,servings,readyInMinutes,aggregateLikes,vegan,vegetarian, glutenFree,instructions) VALUES 
+      ( '${recipe_details.user_id}','${recipe_details.title}','${recipe_details.image}', '${recipe_details.servings}', '${recipe_details.readyInMinutes}', '${recipe_details.glutenFree}',
+        '${recipe_details.aggregateLikes}', '${recipe_details.vegan}', '${recipe_details.glutenFree}', '${recipe_details.instructions}')`
     );
+    let recipes_id = [];
+    recipes_id = await DButils.execQuery(`SELECT MAX(recipe_id) as recipe_id from recipes`);
 
+    await recipe_details.ingredients.map((element) => DButils.execQuery(
+      `INSERT INTO recipe_ingredients VALUES ('${recipes_id[0].recipe_id}', '${element.name}','${element.amount}')`
+    ));
     res.status(201).send({ message: "recipe created", success: true });
   } catch (error) {
     next(error);
@@ -81,10 +91,14 @@ router.post('/favorites', async (req,res,next) => {
     const user_id = req.session.user_id; 
     // const user_id = req.body.user_id;
     const recipe_id = req.body.recipe_id;
+    let recipes_ids = [];
+    recipes_ids = await DButils.execQuery(`SELECT recipe_id from favoriterecipes where user_id='${user_id}'`);
+    if (recipes_ids.find((x) => x.recipe_id === recipe_id))
+      throw { status: 500, message: "Already in favorites" };
     await user_utils.markAsFavorite(user_id,recipe_id);
     res.status(200).send("The Recipe successfully saved as favorite");
     } catch(error){
-    next(error);
+      next(error);
   }
 })
 
@@ -106,14 +120,47 @@ router.post('/favorites', async (req,res,next) => {
 });
 
 
+/**
+ * This path gets body with recipeId and save this recipe in the last watched list of the logged-in user
+ */
+ router.post('/lastWatched', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id; 
+    // const user_id = req.body.user_id;
+    const recipe_id = req.body.recipe_id;
+    let recipes_ids = [];
+    recipes_ids = await DButils.execQuery(`SELECT recipe_id from last_recipes where user_id='${user_id}'`);
+    if (recipes_ids.find((x) => x.recipe_id === recipe_id))
+      throw { status: 500, message: "Already in lastWatched" };
+    await user_utils.markAsLastWatched(user_id,recipe_id);
+    res.status(200).send("The Recipe successfully saved as lastWatched");
+    } catch(error){
+      next(error);
+  }
+})
 
+/**
+ * This path returns the last watched recipes that were saved by the logged-in user
+ */
+ router.get('/lastWatched', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    const three_last_recipes_id = await user_utils.getLastWatchedRecipes(user_id);
+    let recipes_id_array = [];
+    three_last_recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
+    const results = await recipe_utils.getRecipesPreview(recipes_id_array);
+    res.status(200).send(results);
+  } catch(error){
+    next(error); 
+  }
+});
 
 /**
  * This path returns the recipes that the user search by cusine
  */
  router.get('/search', async (req,res,next) => {
   try {
-    let m_recipes_cusine = await recipes_utils.get_m_recipes_cusine(req.params.number, req.params.cusine, req.params.cusine, req.params.diet, req.params.intolerance);
+    let m_recipes_cusine = await recipe_utils.get_m_recipes_cusine(req.query.query, req.query.number, req.query.cusine, req.query.diet, req.query.intolerance);
     res.send(m_recipes_cusine);
   } catch (error) {
     next(error);
