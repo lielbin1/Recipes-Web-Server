@@ -44,6 +44,30 @@ async function getRandomRecipes() {
     });
     return response;
 }
+////////get the recipes from the API spooncular
+// number: if not choosen send default 5 
+// query: the recipe name
+async function get_m_recipes_cusine(query, number, cusine, diet, intolerance) { 
+    if(cusine === null && diet === null && intolerance === null){
+        const response = await axios.get(`${api_domain}/complexSearch`,{
+            params: {
+                number: number,
+                query: query,
+                apiKey: process.env.spooncular_apiKey
+            }
+        });
+        return response;
+    }
+
+
+    const response = await axios.get(`${api_domain}/complexSearch?cusine=${cusine}&number=${number}`,{
+        params: {
+            number:10,
+            apiKey: process.env.spooncular_apiKey
+        }
+    });
+    return response;
+}
 //TODO: need to delete this, i add a function from lab8 getRecipesPreview
 // preview of local recipes from the DB, return array of JSON objects
 // async function getLocalRecipesPreview(local_recipes_id_array){
@@ -119,6 +143,7 @@ exports.getRecipeDetails = getRecipeDetails;
 exports.getRandomRecipes = getRandomRecipes;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getRecipesPreview = getRecipesPreview;
+exports.get_m_recipes_cusine = get_m_recipes_cusine;
 
 
 
