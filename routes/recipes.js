@@ -21,15 +21,9 @@ const recipes_utils = require("./utils/recipes_utils");
 // ---------------------------API--------------------------------
 
 /**
- * This path returns a full details of a recipe by its id
+ * This path returns a full details of three random recipes
  */
  router.get("/random", async (req, res, next) => {
-  // try {
-  //   const recipes = await recipes_utils.getRandomRecipes();
-  //   res.send(recipes);
-  // } catch (error) {
-  //   next(error);
-  // }
     try {
     let random_3_recipes = await recipes_utils.getRandomThreeRecipes();
     res.send(random_3_recipes);

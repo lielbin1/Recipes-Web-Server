@@ -12,6 +12,7 @@ const recipe_utils = require("./utils/recipes_utils");
 
 
 router.get("/", (req, res) => res.send("im in user"));
+
 /**
  * Authenticate all incoming requests by middleware - cheking if the user is loged in 
  */
@@ -27,7 +28,37 @@ router.use(async function (req, res, next) {
     res.sendStatus(401);
   }
 });
+/**
+ * This path returns a full details of chosen recipe
+ */
+ router.get('/FullRecipeDetailsDB/:recipe_id', async (req,res,next) => {
+  try{
+    // const user_id = req.session.user_id;
+    const recipes_info = await user_utils.getFullRecipeDetails(req.params.recipe_id);
+  
+    res.status(200).send(recipes_info);
+  } catch(error){
+    next(error); 
+  }
+});
 
+/**
+ * This path returns a full details of chosen recipe
+ */
+ router.get('/FullRecipeDetailsAPI/:recipe_id', async (req,res,next) => {
+  try{
+    // const user_id = req.session.user_id;
+    const recipes_info = await recipe_utils.getFullRecipeDetails(req.params.recipe_id);
+  
+    res.status(200).send(recipes_info);
+  } catch(error){
+    next(error); 
+  }
+});
+
+/**
+ * This path returns a full details created recipe
+ */
 router.get('/CreateRecipe', async (req,res,next) => {
   try{
     const user_id = req.session.user_id;
@@ -39,6 +70,9 @@ router.get('/CreateRecipe', async (req,res,next) => {
   }
 });
 
+/**
+ * This path allows to create a new recipe 
+ */
 router.post("/CreateRecipe", async (req, res, next) => {
   try {
     // parameters exists
@@ -156,56 +190,19 @@ router.post('/favorites', async (req,res,next) => {
 });
 
 /**
- * This path returns the recipes that the user search by cusine
+ * This path returns the recipes that the user search by cusine, diet or intolerance
  */
  router.get('/search', async (req,res,next) => {
   try {
-    let m_recipes_cusine = await recipe_utils.get_m_recipes_cusine(req.query.query, req.query.number, req.query.cusine, req.query.diet, req.query.intolerance);
-    res.send(m_recipes_cusine);
+    let m_recipes = await recipe_utils.getFilteredRecipesFromSearch(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance);
+    res.send(m_recipes);
   } catch (error) {
     next(error);
   }
 });
 
-/**
- * This path returns the recipes that the user search by diet
- */
- router.get('/search/diet', async (req,res,next) => {
-
-});
-
-/**
- * This path returns the recipes that the user search by intolerance
- */
- router.get('/search/intolerance', async (req,res,next) => {
-
-});
 
 
-
-
-// router.get('/favorites', async (req,res,next) => {
-//   try{
-//     const user_id = req.session.user_id;
-//     let favorite_recipes = {};
-//     const local_recipes_id = await user_utils.getFavoriteLocalRecipes(user_id);
-//     const external_recipes_id = await user_utils.getFavoriteExternalRecipes(user_id);
-
-//     let local_recipes_id_array = [];
-//     let external_recipes_id_array = [];
-//     local_recipes_id.map((element) => local_recipes_id_array.push(element.local_recipe_id)); //extracting the local recipe ids into array
-//     external_recipes_id.map((element) => external_recipes_id_array.push(element.external_recipes_id)); //extracting the external recipe ids into array
-//     // array of JSON object represents recipe details
-//     const local_results = await recipe_utils.getLocalRecipesPreview(local_recipes_id_array);
-//     // array of JSON object represents recipe details
-//     const external_results = await recipe_utils.getExternalRecipesPreview(external_recipes_id_array);
-//     results = [local_results,external_results]
-//     res.status(200).send(results);
-//   } catch(error){
-//     next(error); 
-//   }
-// });
-// -------------------------------API-------------------------------
 
 
 

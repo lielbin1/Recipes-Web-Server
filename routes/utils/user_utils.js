@@ -23,23 +23,24 @@ async function getLastWatchedRecipes(user_id){
     return recipes_id.slice(-3);
 }
 
+
+
 async function getCreatedRecipes(user_id){
     const recipes_details = await DButils.execQuery(`select title,image,readyInMinutes, aggregateLikes, vegan, vegetarian, glutenFree from recipes where user_id='${user_id}'`);
     return recipes_details;
 }
-// async function getRecipesPreview(recipes_id_array){
-//     //check if exists in the spoonacular
-//     const recipes_array = recipes_id_array.map((recipe_id) => recipes_utils.getRecipeDetails(recipe_id));
-//     //if no in the spoonacular check in the DB
-//     const recipes_id = await DButils.execQuery(`select * from recepies where recipe_id in '${recipes_id_array}'`);
 
-//     //else not found
-//     return recipes_id;
-// }
+
+async function getFullRecipeDetails(recipe_id){
+    const recipes_details = await DButils.execQuery(`select * from recipes where recipe_id='${recipe_id}'`);
+    const recipes_ingredients = await DButils.execQuery(`select ingredient_name,amount from recipe_ingredients where recipe_id='${recipe_id}'`);
+    recipes_details[0]["extendedIngredients"] = recipes_ingredients;
+    return recipes_details;
+}
 
 exports.markAsFavorite = markAsFavorite;
 exports.getFavoriteRecipes = getFavoriteRecipes;
 exports.getCreatedRecipes = getCreatedRecipes;
 exports.markAsLastWatched = markAsLastWatched;
 exports.getLastWatchedRecipes = getLastWatchedRecipes;
-
+exports.getFullRecipeDetails =getFullRecipeDetails;
