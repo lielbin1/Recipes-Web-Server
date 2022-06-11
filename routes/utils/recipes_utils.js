@@ -1,6 +1,7 @@
 const axios = require("axios");
 const api_domain = "https://api.spoonacular.com/recipes";
 
+const user_utils = require("./user_utils");
 
 
 /**
@@ -58,23 +59,25 @@ async function getRandomThreeRecipes(){
 }
 
 // get list of recipe details from spooncular API
-async function getRecipesPreview(recipes_ids_list){
+async function getRecipesPreview(recipes_ids_list,user_id){
     let promises =[];
     recipes_ids_list.map((id)=>{
         promises.push(getRecipeInformation(id));
     });
     let info_res = await Promise.all(promises);
-    return extractPreviewRecipeDetails(info_res);
+    return extractPreviewRecipeDetails(info_res,user_id);
 }
 // do not show the is_watched and is_favorite flag here - cause the random route is using this
-function extractPreviewRecipeDetails(recipes_info){
+async function extractPreviewRecipeDetails(recipes_info,user_id){
     //check the data type so it can work with diffrent types of data
-    return recipes_info.map((recipe_info)=> {
+    return await Promise.all(recipes_info.map(async (recipe_info)=> {
         let data = recipe_info;
         if(recipe_info.data){
             data = recipe_info.data;
         }
         const{ id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = data;
+        let is_favorite = await  user_utils.checkIsFavorite(user_id,id);
+        let is_watched =  await user_utils.checkIsWatched(user_id,id);
         return{
             id: id,
             title: title,
@@ -83,14 +86,16 @@ function extractPreviewRecipeDetails(recipes_info){
             aggregateLikes: aggregateLikes,
             vegan: vegan,
             vegetarian: vegetarian,
-            glutenFree: glutenFree,  
+            glutenFree: glutenFree, 
+            is_favorite:is_favorite,
+            is_watched:is_watched 
         }
-    })
+    }))
 }
 ////////get the recipes from the API spooncular
 // number: if not choosen send default 5 
 // query: the recipe name
-async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) { 
+async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort,user_id) { 
     let search_url= `${api_domain}/complexSearch/?`
     if(query !== undefined){
         search_url = search_url + `&query=${query}`
@@ -104,6 +109,7 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
     if(intolerance !== undefined){
         search_url = search_url + `&intolerance=${intolerance}`
     }
+    //TODO: check if instructions not emty
     if(sort !== undefined){
         search_url = search_url + `&sort=${sort}`
     }
@@ -118,32 +124,11 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
             apiKey: process.env.spooncular_apiKey
         }
     });
-    return extractPreviewRecipeDetails(response.data.results);
+    return extractPreviewRecipeDetails(response.data.results,user_id);
 }
 
 
-// function extractPreviewRecipeDetails(recipes_info){
-//     //check the data type so it can work with diffrent types of data
-//     return recipes_info.map((recipe_info)=> {
-//         let data = recipe_info;
-//         if(recipe_info.data){
-//             data = recipe_info.data;
-//         }
-//         const{ id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = data;
-//         return{
-//             id: id,
-//             title: title,
-//             readyInMinutes: readyInMinutes,
-//             image: image,
-//             aggregateLikes: aggregateLikes,
-//             vegan: vegan,
-//             vegetarian: vegetarian,
-//             glutenFree: glutenFree,  
-//         }
-//     })
-// }
-
-async function getFullRecipeDetails(recipe_id){
+async function getFullRecipeDetails(user_id,recipe_id){
     let recipe_info = await getRecipeInformation(recipe_id);
     let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients } = recipe_info.data;
     let ingredients_dict = [];
@@ -151,7 +136,8 @@ async function getFullRecipeDetails(recipe_id){
         name: element.name,
         amount: element.amount,
     }))
-    
+    let is_favorite = await  user_utils.checkIsFavorite(user_id,id);
+    let is_watched =  await user_utils.checkIsWatched(user_id,id);
     return {
         id: id,
         title: title,
@@ -160,9 +146,12 @@ async function getFullRecipeDetails(recipe_id){
         aggregateLikes: aggregateLikes,
         vegan: vegan,
         vegetarian: vegetarian,
-        glutenFree: glutenFree, 
+        glutenFree: glutenFree,
+        is_favorite:is_favorite,
+        is_watched:is_watched, 
         analyzedInstructions: analyzedInstructions,
         extendedIngredients: ingredients_dict
+       
     }
 
 }

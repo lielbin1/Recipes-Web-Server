@@ -48,7 +48,8 @@ router.use(async function (req, res, next) {
  router.get('/FullRecipeDetailsAPI/:recipe_id', async (req,res,next) => {
   try{
     // const user_id = req.session.user_id;
-    const recipes_info = await recipe_utils.getFullRecipeDetails(req.params.recipe_id);
+    const user_id = req.session.user_id;
+    const recipes_info = await recipe_utils.getFullRecipeDetails(user_id,req.params.recipe_id);
   
     res.status(200).send(recipes_info);
   } catch(error){
@@ -146,7 +147,7 @@ router.post('/favorites', async (req,res,next) => {
     const recipes_id = await user_utils.getFavoriteRecipes(user_id);
     let recipes_id_array = [];
     recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
-    const results = await recipe_utils.getRecipesPreview(recipes_id_array);
+    const results = await recipe_utils.getRecipesPreview(recipes_id_array,user_id);
     res.status(200).send(results);
   } catch(error){
     next(error); 
@@ -182,7 +183,7 @@ router.post('/favorites', async (req,res,next) => {
     const three_last_recipes_id = await user_utils.getLastWatchedRecipes(user_id);
     let recipes_id_array = [];
     three_last_recipes_id.map((element) => recipes_id_array.push(element.recipe_id)); //extracting the recipe ids into array
-    const results = await recipe_utils.getRecipesPreview(recipes_id_array);
+    const results = await recipe_utils.getRecipesPreview(recipes_id_array,user_id);
     res.status(200).send(results);
   } catch(error){
     next(error); 
@@ -194,7 +195,10 @@ router.post('/favorites', async (req,res,next) => {
  */
  router.get('/search', async (req,res,next) => {
   try {
-    let m_recipes = await recipe_utils.getRecipesFromSearch(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort);
+    const user_id = req.session.user_id;
+    // let is_favorite = user_utils.checkIsFavorite(user_id,recipe_id);
+    // let is_watched = user_utils.checkIsWatched(user_id,recipe_id);
+    let m_recipes = await recipe_utils.getRecipesFromSearch(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort,user_id);
     res.send(m_recipes);
   } catch (error) {
     next(error);
