@@ -83,125 +83,69 @@ function extractPreviewRecipeDetails(recipes_info){
             aggregateLikes: aggregateLikes,
             vegan: vegan,
             vegetarian: vegetarian,
-            glutenFree: glutenFree,   
+            glutenFree: glutenFree,  
         }
     })
 }
 ////////get the recipes from the API spooncular
 // number: if not choosen send default 5 
 // query: the recipe name
-async function getRecipesFromSearch(query, number, cuisine, diet, intolerance) { 
+async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) { 
     let search_url= `${api_domain}/complexSearch/?`
-    // if(number !== undefined){
-    //     search_url = search_url + `&number=${number}`
-    // }
-    // else if(number === undefined){
-    //     search_url = search_url + `&number=5`
-    // }
     if(query !== undefined){
         search_url = search_url + `&query=${query}`
     }
-    else if(cuisine !== undefined){
+    if(cuisine !== undefined){
         search_url = search_url + `&cuisine=${cuisine}`
     }
-    else if(diet !== undefined){
+    if(diet !== undefined){
         search_url = search_url + `&diet=${diet}`
     }
-    else if(intolerance !== undefined){
+    if(intolerance !== undefined){
         search_url = search_url + `&intolerance=${intolerance}`
     }
-    else if(number !== undefined){
-        search_url = search_url + `&number=${number+10}`
+    if(sort !== undefined){
+        search_url = search_url + `&sort=${sort}`
+    }
+    search_url = search_url + `&instructionsRequired=true&addRecipeInformation=true`
+    if(number !== undefined){
+        search_url = search_url + `&number=${number}`
     }
  
     const response = await axios.get(search_url,{
         params: {
-            number: 30,
+            number: 5,
             apiKey: process.env.spooncular_apiKey
         }
     });
-    return response;
+    return extractPreviewRecipeDetails(response.data.results);
 }
 
-async function getFilteredRecipesFromSearch(query, number, cuisine, diet, intolerance){
-    let random_pool = await getRecipesFromSearch(query, number, cuisine, diet, intolerance)
-    let recipe_info_array = []
-    // This works - return array of JSON object contains recipe details
-    random_pool.data.results.map((element)=>{
-        recipe_info_array.push(getRecipeInformation(element.id));});
-    let info_res = await Promise.all(recipe_info_array);
-    
-    // TODO: the filter returns 0 recipes - check why.
-    // let filterd_random_pool = info_res.filter((random.data)=>(random.instructions != "") && random.image && random.title && random.readyInMinutes && random.aggregateLikes && random.vegan 
-    // && random.vegetarian && random.glutenFree)
-    let filterd_random_pool = info_res.filter((random)=> random.data.image && random.data.title 
-    && random.data.readyInMinutes && random.data.aggregateLikes && random.data.vegan 
-    && random.data.vegetarian && random.data.glutenFree)
-    // let filterd_random_pool = info_res.filter((random)=> random.data.aggregateLikes===2)
-    
-    // this is not working - cause the same parameters sent to the getFilteredRecipesFromSearch(query, number, cuisine, diet, intolerance) call - and its returns the same result. 
-    if((number !== undefined && filterd_random_pool.length < number) || filterd_random_pool.length < 5){
-        return getFilteredRecipesFromSearch(query, number, cuisine, diet, intolerance);
-    }
-    //TODO: check the number of recipes to return 
-    if(number !== undefined && filterd_random_pool.length > number){
-        
-    }
-    //TODO: maby dont neet to use extractPreviewRecipeDetailsFromSearch and just return the filterd_random_pool
-    return extractPreviewRecipeDetailsFromSearch(filterd_random_pool);
-   
-}
-// add the is_watched and is_favorite flag here - cause the random route is using this
-async function getRecipeDetailsForSearch(recipe_id) {
-    let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes,instructions, vegan, vegetarian, glutenFree} = recipe_info.data;
 
-    return {
-        id: id,
-        title: title,
-        readyInMinutes: readyInMinutes,
-        image: image,
-        aggregateLikes: aggregateLikes,
-        instructions: instructions,
-        vegan: vegan,
-        vegetarian: vegetarian,
-        glutenFree: glutenFree,       
-    }
-}
-
-async function extractPreviewRecipeDetailsFromSearch(recipes_info){
-    //check the data type so it can work with diffrent types of data
-    let promises =[];
-    recipes_info.map((recipe_info)=>{
-        promises.push(getRecipeDetailsForSearch(recipe_info.id));
-    });
-    let info_res = await Promise.all(promises);
-
-    return info_res;
-    // return recipes_info.map((recipe_info)=> {
-    //     let recipe_details = await getRecipeDetailsForSearch(recipe_info.id);
-    //     if(recipe_info.data){
-    //         recipe_details = recipe_info.data;
-    //     }
-       
-    //     const{ id, title, readyInMinutes, image, aggregateLikes, instructions, vegan, vegetarian, glutenFree } = recipe_details;
-    //     return{
-    //         id: id,
-    //         title: title,
-    //         readyInMinutes: readyInMinutes,
-    //         image: image,
-    //         aggregateLikes: aggregateLikes,
-    //         instructions: instructions,
-    //         vegan: vegan,
-    //         vegetarian: vegetarian,
-    //         glutenFree: glutenFree,   
-    //     }
-    // })
-}
+// function extractPreviewRecipeDetails(recipes_info){
+//     //check the data type so it can work with diffrent types of data
+//     return recipes_info.map((recipe_info)=> {
+//         let data = recipe_info;
+//         if(recipe_info.data){
+//             data = recipe_info.data;
+//         }
+//         const{ id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = data;
+//         return{
+//             id: id,
+//             title: title,
+//             readyInMinutes: readyInMinutes,
+//             image: image,
+//             aggregateLikes: aggregateLikes,
+//             vegan: vegan,
+//             vegetarian: vegetarian,
+//             glutenFree: glutenFree,  
+//         }
+//     })
+// }
 
 async function getFullRecipeDetails(recipe_id){
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,instructions,extendedIngredients } = recipe_info.data;
+    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients } = recipe_info.data;
     let ingredients_dict = [];
     extendedIngredients.map((element) => ingredients_dict.push({
         name: element.name,
@@ -217,7 +161,7 @@ async function getFullRecipeDetails(recipe_id){
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree, 
-        instructions: instructions,
+        analyzedInstructions: analyzedInstructions,
         extendedIngredients: ingredients_dict
     }
 
@@ -230,7 +174,6 @@ exports.getRandomRecipes = getRandomRecipes;
 exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getRecipesPreview = getRecipesPreview;
 exports.getRecipesFromSearch = getRecipesFromSearch;
-exports.getFilteredRecipesFromSearch = getFilteredRecipesFromSearch;
 exports.getFullRecipeDetails = getFullRecipeDetails;
 
 
