@@ -45,13 +45,17 @@ async function getCreatedRecipes(user_id){
     return recipes_details;
 }
 
+async function getFamilyRecipes(user_id){
+    const recipes_details = await DButils.execQuery(`select title,image,readyInMinutes, aggregateLikes, vegan, vegetarian, glutenFree from recipes where user_id='${user_id}' and title like 'family%'`);
+    return recipes_details;
+}
 
 async function getFullRecipeDetails(recipe_id){
     const recipes_details = await DButils.execQuery(`select * from recipes where recipe_id='${recipe_id}'`);
     const recipes_ingredients = await DButils.execQuery(`select ingredient_name,amount from recipe_ingredients where recipe_id='${recipe_id}'`);
     recipes_details[0]["extendedIngredients"] = recipes_ingredients;
-    let is_favorite = user_utils.checkIsFavorite(recipe_id);
-    let is_watched = user_utils.checkIsWatched(recipe_id);
+    let is_favorite = await checkIsFavorite(recipe_id);
+    let is_watched = await checkIsWatched(recipe_id);
     recipes_details[0]["is_favorite"]=is_favorite;
     recipes_details[0]["is_watched"]=is_watched;
 
@@ -66,3 +70,4 @@ exports.getLastWatchedRecipes = getLastWatchedRecipes;
 exports.getFullRecipeDetails =getFullRecipeDetails;
 exports.checkIsFavorite=checkIsFavorite;
 exports.checkIsWatched =checkIsWatched;
+exports.getFamilyRecipes = getFamilyRecipes;

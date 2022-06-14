@@ -67,6 +67,7 @@ async function getRecipesPreview(recipes_ids_list,user_id){
     let info_res = await Promise.all(promises);
     return extractPreviewRecipeDetails(info_res,user_id);
 }
+
 // do not show the is_watched and is_favorite flag here - cause the random route is using this
 async function extractPreviewRecipeDetails(recipes_info,user_id){
     //check the data type so it can work with diffrent types of data
@@ -92,10 +93,26 @@ async function extractPreviewRecipeDetails(recipes_info,user_id){
         }
     }))
 }
+
+// get recipe details from spooncular API
+async function getFilteredSearchRecipes(query, number, cuisine, diet, intolerance,sort,user_id,counter){
+    if(number === undefined){
+        number=5;
+    }
+    let searchRes = await getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) ;
+    let filterdSearchRes = searchRes.results.filter((random)=>(random.analyzedInstructions.length != 0))
+    if(filterdSearchRes.length < number - counter && searchRes.totalResults >= number){
+        counter++;
+        return getFilteredSearchRecipes(query, number+1, cuisine, diet, intolerance,sort,user_id,counter);
+    }
+    return extractPreviewRecipeDetails(filterdSearchRes,user_id);
+}
+
 ////////get the recipes from the API spooncular
 // number: if not choosen send default 5 
 // query: the recipe name
-async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort,user_id) { 
+// async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort,user_id) { 
+async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,sort) { 
     let search_url= `${api_domain}/complexSearch/?`
     if(query !== undefined){
         search_url = search_url + `&query=${query}`
@@ -113,18 +130,20 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
     if(sort !== undefined){
         search_url = search_url + `&sort=${sort}`
     }
-    search_url = search_url + `&instructionsRequired=true&addRecipeInformation=true`
+    search_url = search_url + `&instructionsRequired=true&addRecipeInformation=true` 
     if(number !== undefined){
         search_url = search_url + `&number=${number}`
     }
- 
+    
     const response = await axios.get(search_url,{
         params: {
             number: 5,
             apiKey: process.env.spooncular_apiKey
         }
     });
-    return extractPreviewRecipeDetails(response.data.results,user_id);
+    // return extractPreviewRecipeDetails(response.data.results,user_id);
+    return response.data;
+
 }
 
 
@@ -164,6 +183,6 @@ exports.getRandomThreeRecipes = getRandomThreeRecipes;
 exports.getRecipesPreview = getRecipesPreview;
 exports.getRecipesFromSearch = getRecipesFromSearch;
 exports.getFullRecipeDetails = getFullRecipeDetails;
-
+exports.getFilteredSearchRecipes =getFilteredSearchRecipes;
 
 

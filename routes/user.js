@@ -43,21 +43,6 @@ router.use(async function (req, res, next) {
 });
 
 /**
- * This path returns a full details of chosen recipe
- */
- router.get('/FullRecipeDetailsAPI/:recipe_id', async (req,res,next) => {
-  try{
-    // const user_id = req.session.user_id;
-    const user_id = req.session.user_id;
-    const recipes_info = await recipe_utils.getFullRecipeDetails(user_id,req.params.recipe_id);
-  
-    res.status(200).send(recipes_info);
-  } catch(error){
-    next(error); 
-  }
-});
-
-/**
  * This path returns a full details created recipe
  */
 router.get('/CreateRecipe', async (req,res,next) => {
@@ -195,15 +180,29 @@ router.post('/favorites', async (req,res,next) => {
  */
  router.get('/search', async (req,res,next) => {
   try {
-    const user_id = req.session.user_id;
-    // let is_favorite = user_utils.checkIsFavorite(user_id,recipe_id);
-    // let is_watched = user_utils.checkIsWatched(user_id,recipe_id);
-    let m_recipes = await recipe_utils.getRecipesFromSearch(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort,user_id);
+    const user_id =req.session.user_id;
+    let m_recipes = await recipe_utils.getFilteredSearchRecipes(req.query.query, req.query.number, req.query.cuisine, req.query.diet, req.query.intolerance,req.query.sort,user_id,0);
     res.send(m_recipes);
   } catch (error) {
     next(error);
   }
 });
+
+/**
+ * This path returns the recipes that the user search by cusine, diet or intolerance
+ */
+ router.get('/familyRecipes', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    const recipes_info = await user_utils.getFamilyRecipes(user_id);
+  
+    res.status(200).send(recipes_info);
+  } catch(error){
+    next(error); 
+  }
+});
+
+
 
 
 
