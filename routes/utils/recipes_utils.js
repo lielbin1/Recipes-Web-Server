@@ -40,7 +40,7 @@ async function getRecipeDetails(recipe_id) {
 async function getRandomRecipes() {
     const response = await axios.get(`${api_domain}/random`,{
         params: {
-            number:10,
+            number:5,
             apiKey: process.env.spooncular_apiKey
         }
     });
