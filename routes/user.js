@@ -56,6 +56,18 @@ router.get('/CreateRecipe', async (req,res,next) => {
   }
 });
 
+router.get('/userid', async (req,res,next) => {
+  try{
+    const user_id = req.session.user_id;
+    // const recipes_info = await user_utils.getCreatedRecipes(user_id);
+  
+    res.status(200).send(user_id+"");
+  } catch(error){
+    next(error); 
+  }
+});
+
+
 /**
  * This path allows to create a new recipe 
  */
@@ -87,8 +99,8 @@ router.post("/CreateRecipe", async (req, res, next) => {
     // add the new recipe
     await DButils.execQuery(
       `INSERT INTO recipes(user_id,title,image,servings,readyInMinutes,aggregateLikes,vegan,vegetarian, glutenFree,instructions) VALUES 
-      ( '${recipe_details.user_id}','${recipe_details.title}','${recipe_details.image}', '${recipe_details.servings}', '${recipe_details.readyInMinutes}', '${recipe_details.glutenFree}',
-        '${recipe_details.aggregateLikes}', '${recipe_details.vegan}', '${recipe_details.glutenFree}', '${recipe_details.instructions}')`
+      ( '${recipe_details.user_id}','${recipe_details.title}','${recipe_details.image}', '${recipe_details.servings}', '${recipe_details.readyInMinutes}', 
+        '${recipe_details.aggregateLikes}', '${recipe_details.vegan}','${recipe_details.vegetarian}', '${recipe_details.glutenFree}', '${recipe_details.instructions}')`
     );
     let recipes_id = [];
     recipes_id = await DButils.execQuery(`SELECT MAX(recipe_id) as recipe_id from recipes`);

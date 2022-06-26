@@ -7,6 +7,7 @@ const session = require("client-sessions");
 const DButils = require("./routes/utils/DButils");
 var cors = require('cors')
 
+
 var app = express();
 app.use(logger("dev")); //logger
 app.use(express.json()); // parse application/json
@@ -21,7 +22,14 @@ app.use(
       httpOnly: false,
     }
     //the session will be extended by activeDuration milliseconds
-  })
+  }),
+//   cors({
+//     credentials: true,
+//     origin: [
+//         'http://localhost:3000',
+//         'http://localhost:8080'
+//     ]
+// }),
 );
 app.use(express.urlencoded({ extended: false })); // parse application/x-www-form-urlencoded
 app.use(express.static(path.join(__dirname, "public"))); //To serve static files such as images, CSS files, and JavaScript files
