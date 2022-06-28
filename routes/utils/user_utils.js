@@ -71,7 +71,6 @@ async function getFullRecipeDetails(recipe_id){
     //     is_watched:is_watched, 
     //     analyzedInstructions: recipes_details.analyzedInstructions,
     //     extendedIngredients: recipes_ingredients
-       
     // } //end changed
 
     return recipes_details;

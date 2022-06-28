@@ -50,8 +50,8 @@ async function getRandomRecipes() {
 // get recipe details from spooncular API
 async function getRandomThreeRecipes(){
     let random_pool = await getRandomRecipes();
-    let filterd_random_pool = random_pool.data.recipes.filter((random)=>(random.instructions != "") && random.image && random.title && random.readyInMinutes && random.aggregateLikes && random.vegan 
-    && random.vegetarian && random.glutenFree)
+    let filterd_random_pool = random_pool.data.recipes.filter((random)=>(random.instructions != "") && (random.image != "") && random.image)
+    //  && random.title && random.readyInMinutes && random.aggregateLikes && random.vegan && random.vegetarian && random.glutenFree)
     if(filterd_random_pool.length < 3){
         return getRandomThreeRecipes();
     }
@@ -168,7 +168,7 @@ async function getFullRecipeDetails(user_id,recipe_id){
         glutenFree: glutenFree,
         is_favorite:is_favorite,
         is_watched:is_watched, 
-        analyzedInstructions: analyzedInstructions,
+        instructions: analyzedInstructions,
         extendedIngredients: ingredients_dict
        
     }

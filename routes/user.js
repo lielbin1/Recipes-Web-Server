@@ -162,10 +162,12 @@ router.post('/favorites', async (req,res,next) => {
     const recipe_id = req.body.recipe_id;
     let recipes_ids = [];
     recipes_ids = await DButils.execQuery(`SELECT recipe_id from last_recipes where user_id='${user_id}'`);
-    if (recipes_ids.find((x) => x.recipe_id === recipe_id))
-      throw { status: 500, message: "Already in lastWatched" };
-    await user_utils.markAsLastWatched(user_id,recipe_id);
-    res.status(200).send("The Recipe successfully saved as lastWatched");
+    if (!(recipes_ids.find((x) => x.recipe_id === recipe_id))){
+      await user_utils.markAsLastWatched(user_id,recipe_id);
+      res.status(200).send("The Recipe successfully saved as lastWatched");
+    }
+      // throw { status: 500, message: "Already in lastWatched" };
+
     } catch(error){
       next(error);
   }
