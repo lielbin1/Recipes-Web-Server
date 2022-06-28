@@ -149,7 +149,7 @@ async function getRecipesFromSearch(query, number, cuisine, diet, intolerance,so
 
 async function getFullRecipeDetails(user_id,recipe_id){
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients } = recipe_info.data;
+    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,analyzedInstructions,extendedIngredients,servings } = recipe_info.data;
     let ingredients_dict = [];
     extendedIngredients.map((element) => ingredients_dict.push({
         name: element.name,
@@ -168,6 +168,7 @@ async function getFullRecipeDetails(user_id,recipe_id){
         glutenFree: glutenFree,
         is_favorite:is_favorite,
         is_watched:is_watched, 
+        servings:servings,
         instructions: analyzedInstructions,
         extendedIngredients: ingredients_dict
        
