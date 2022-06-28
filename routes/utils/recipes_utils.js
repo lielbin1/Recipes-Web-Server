@@ -22,7 +22,7 @@ async function getRecipeInformation(recipe_id) {
 // get one recipe details from spooncular API
 async function getRecipeDetails(recipe_id) {
     let recipe_info = await getRecipeInformation(recipe_id);
-    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = recipe_info.data;
+    let { id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,servings } = recipe_info.data;
 
     return {
         id: id,
@@ -33,6 +33,7 @@ async function getRecipeDetails(recipe_id) {
         vegan: vegan,
         vegetarian: vegetarian,
         glutenFree: glutenFree,       
+        servings:servings
     }
 }
 
@@ -76,7 +77,7 @@ async function extractPreviewRecipeDetails(recipes_info,user_id){
         if(recipe_info.data){
             data = recipe_info.data;
         }
-        const{ id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree } = data;
+        const{ id, title, readyInMinutes, image, aggregateLikes, vegan, vegetarian, glutenFree,servings } = data;
         let is_favorite = await  user_utils.checkIsFavorite(user_id,id);
         let is_watched =  await user_utils.checkIsWatched(user_id,id);
         return{
@@ -89,7 +90,8 @@ async function extractPreviewRecipeDetails(recipes_info,user_id){
             vegetarian: vegetarian,
             glutenFree: glutenFree, 
             is_favorite:is_favorite,
-            is_watched:is_watched 
+            is_watched:is_watched,
+            servings: servings
         }
     }))
 }
