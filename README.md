@@ -7,7 +7,7 @@ https://app.swaggerhub.com/apis/lielbin1/API/1.0.0#/
 Using an external API - https://spoonacular.com/food-api/docs
 
 
-Tools we worked with - swagger, pastman.
+Additional tools - swagger, pastman.
 
 
 
